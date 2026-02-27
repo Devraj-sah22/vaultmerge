@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VaultMerge · Premium File Merger & Arranger</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(145deg, #f0f4fa 0%, #e9eef5 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            color: #1a2639;
+        }
+
+        .premium-card {
+            width: 100%;
+            max-width: 1400px;
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(18px) saturate(180%);
+            -webkit-backdrop-filter: blur(18px) saturate(180%);
+            border-radius: 42px;
+            box-shadow: 0 30px 60px -20px rgba(0, 20, 40, 0.25),
+                        inset 0 1px 2px rgba(255,255,255,0.8),
+                        0 0 0 1px rgba(255,255,255,0.5);
+            padding: 2.5rem 2.2rem;
+            transition: all 0.2s ease;
+        }
+
+        .top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2.5rem;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-icon {
+            background: #1e2b3f;
+            color: white;
+            width: 52px;
+            height: 52px;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            box-shadow: 0 12px 18px -8px rgba(0,32,64,0.15);
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .logo-text h1 {
+            font-weight: 600;
+            font-size: 1.9rem;
+            letter-spacing: -0.5px;
+            color: #162b3a;
+            line-height: 1.2;
+        }
+
+        .logo-text span {
+            font-weight: 400;
+            font-size: 0.95rem;
+            color: #4a5b6e;
+            background: rgba(255,255,255,0.5);
+            padding: 0.2rem 1rem;
+            border-radius: 30px;
+            backdrop-filter: blur(4px);
+        }
+
+        .merge-actions {
+            display: flex;
+            gap: 14px;
+        }
+
+        .premium-btn {
+            background: white;
+            border: none;
+            padding: 0.8rem 1.8rem;
+            border-radius: 50px;
+            font-weight: 550;
+            font-size: 0.95rem;
+            color: #1a2b3c;
+            box-shadow: 0 8px 16px -8px rgba(0, 20, 40, 0.15);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.2s;
+            border: 1px solid rgba(255,255,255,0.6);
+        }
+
+        .premium-btn i {
+            font-size: 1.1rem;
+            color: #2e4b6e;
+        }
+
+        .premium-btn:hover {
+            background: #f7faff;
+            transform: scale(1.02);
+            box-shadow: 0 12px 24px -12px rgba(0, 20, 40, 0.25);
+        }
+
+        .btn-primary {
+            background: #1f2e47;
+            color: white;
+            border: 1px solid #ffffff30;
+        }
+
+        .btn-primary i {
+            color: #b3d9ff;
+        }
+
+        .btn-primary:hover {
+            background: #253c58;
+        }
+
+        .workspace {
+            display: grid;
+            grid-template-columns: 1fr 1.6fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (max-width: 800px) {
+            .workspace {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .upload-panel {
+            background: rgba(255,255,255,0.3);
+            backdrop-filter: blur(8px);
+            border-radius: 32px;
+            padding: 2rem 1.5rem;
+            border: 1px solid rgba(255,255,255,0.7);
+            box-shadow: 0 10px 25px -18px #142433;
+        }
+
+        .drop-zone {
+            border: 2px dashed rgba(75, 107, 140, 0.4);
+            border-radius: 28px;
+            background: rgba(255, 255, 255, 0.5);
+            padding: 2.8rem 1.2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-bottom: 1.6rem;
+        }
+
+        .drop-zone.dragover {
+            border-color: #2e5a88;
+            background: rgba(255,255,255,0.8);
+            box-shadow: 0 0 0 6px rgba(60, 110, 170, 0.1);
+            transform: scale(1.02);
+        }
+
+        .drop-zone i {
+            font-size: 3.4rem;
+            color: #305e85;
+            opacity: 0.7;
+            margin-bottom: 0.6rem;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .drop-zone h3 {
+            font-weight: 500;
+            font-size: 1.3rem;
+            color: #1e3b58;
+        }
+
+        .file-input-label {
+            display: inline-block;
+            background: #1f344b;
+            color: white;
+            padding: 0.7rem 2rem;
+            border-radius: 50px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            margin-top: 1.2rem;
+            cursor: pointer;
+            transition: 0.15s;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .file-input-label i {
+            margin-right: 8px;
+            color: #b5d0f0;
+        }
+
+        .file-input-label:hover {
+            background: #264b6e;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -10px #1a2f44;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .file-hint {
+            display: flex;
+            justify-content: center;
+            gap: 1.8rem;
+            font-size: 0.9rem;
+            color: #3b5672;
+            flex-wrap: wrap;
+        }
+
+        .list-panel {
+            background: rgba(255,255,255,0.5);
+            backdrop-filter: blur(8px);
+            border-radius: 32px;
+            padding: 1.6rem 1.4rem;
+            border: 1px solid rgba(255,255,255,0.7);
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 10px 25px -18px #142433;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .panel-header h2 {
+            font-weight: 550;
+            font-size: 1.5rem;
+            color: #172c3c;
+        }
+
+        .badge {
+            background: rgba(30, 60, 90, 0.15);
+            border-radius: 60px;
+            padding: 0.3rem 1.2rem;
+            font-size: 0.9rem;
+            color: #1e405e;
+        }
+
+        .action-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 16px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.4);
+            border-radius: 20px;
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255,255,255,0.6);
+        }
+
+        .action-btn {
+            background: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #1a2b3c;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+            border: 1px solid rgba(255,255,255,0.8);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+        }
+
+        .action-btn i {
+            font-size: 0.95rem;
+            color: #2e4b6e;
+        }
+
+        .action-btn:hover {
+            background: #f0f4ff;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px -8px rgba(0, 20, 40, 0.2);
+        }
+
+        .action-btn:active {
+            transform: translateY(0);
+        }
+
+        .file-list-container {
+            flex: 1;
+            min-height: 320px;
+            max-height: 450px;
+            overflow-y: auto;
+            padding-right: 8px;
+            scrollbar-width: thin;
+            scrollbar-color: #b0c8de #e5ecf3;
+        }
+
+        .file-list-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .file-list-container::-webkit-scrollbar-track {
+            background: #eef3f8;
+            border-radius: 10px;
+        }
+
+        .file-list-container::-webkit-scrollbar-thumb {
+            background: #a3b9d0;
+            border-radius: 10px;
+            border: 2px solid #eef3f8;
+        }
+
+        .file-list-container::-webkit-scrollbar-thumb:hover {
+            background: #8aa3c0;
+        }
+
+        .file-item {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(2px);
+            border-radius: 50px;
+            padding: 0.7rem 1rem 0.7rem 1rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border: 1px solid rgba(255,255,255,0.9);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.02);
+            cursor: grab;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .file-item:hover {
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 8px 20px -10px #2c4058;
+            transform: translateX(5px);
+        }
+
+        .file-item.selected {
+            background: rgba(52, 152, 219, 0.15);
+            border: 1px solid #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        }
+
+        .file-item:active {
+            cursor: grabbing;
+        }
+
+        .file-item.dragging {
+            opacity: 0.5;
+            transform: scale(0.98);
+        }
+
+        .selection-checkbox {
+            min-width: 24px;
+            color: #7f8c8d;
+            font-size: 1.1rem;
+            cursor: pointer;
+        }
+
+        .file-item.selected .selection-checkbox {
+            color: #3498db;
+        }
+
+        .file-icon {
+            font-size: 1.5rem;
+            min-width: 32px;
+            text-align: center;
+        }
+
+        .pdf-icon { color: #d34f4f; }
+        .docx-icon { color: #2b6a9f; }
+
+        .file-info {
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .file-name {
+            font-weight: 550;
+            font-size: 0.95rem;
+            color: #1e2f40;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .file-meta {
+            font-size: 0.7rem;
+            color: #4e6f8a;
+            display: flex;
+            gap: 12px;
+        }
+
+        .file-type-badge {
+            background: rgba(90, 120, 150, 0.15);
+            border-radius: 30px;
+            padding: 0.2rem 0.8rem;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .position-badge {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            font-size: 0.75rem;
+            color: #2e4b6e;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid rgba(0,0,0,0.05);
+            margin-right: 8px;
+        }
+
+        .position-badge:hover {
+            background: #3498db;
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .position-badge i {
+            font-size: 0.8rem;
+        }
+
+        .position-number {
+            font-weight: 600;
+        }
+
+        .drag-handle {
+            color: #95a5a6;
+            font-size: 1.1rem;
+            cursor: grab;
+            transition: color 0.2s;
+            padding: 0 5px;
+        }
+
+        .drag-handle:hover {
+            color: #34495e;
+        }
+
+        .item-actions {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            gap: 6px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .file-item:hover .item-actions {
+            opacity: 1;
+        }
+
+        .item-action-btn {
+            background: rgba(255, 255, 255, 0.95);
+            border: none;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #e74c3c;
+            transition: all 0.2s;
+            border: 1px solid rgba(0,0,0,0.05);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+
+        .item-action-btn:hover {
+            background: #e74c3c;
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .empty-message {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 200px;
+            color: #577594;
+            background: rgba(255,255,255,0.3);
+            border-radius: 40px;
+            border: 1px dashed rgba(90, 120, 150, 0.3);
+        }
+
+        .empty-message i {
+            font-size: 3.5rem;
+            opacity: 0.5;
+            margin-bottom: 1rem;
+        }
+
+        .insert-indicator {
+            background: rgba(52, 152, 219, 0.15);
+            border: 2px dashed #3498db;
+            border-radius: 30px;
+            padding: 12px;
+            margin: 8px 0;
+            text-align: center;
+            color: #3498db;
+            font-weight: 500;
+            cursor: pointer;
+            animation: pulse 1.5s infinite;
+        }
+
+        .drag-insert-indicator {
+            background: rgba(46, 204, 113, 0.2);
+            border: 2px solid #2ecc71;
+            border-radius: 30px;
+            padding: 10px;
+            margin: 8px 0;
+            text-align: center;
+            color: #27ae60;
+            font-weight: 500;
+            animation: glow 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
+
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 5px #2ecc71; }
+            50% { box-shadow: 0 0 15px #2ecc71; }
+        }
+
+        .insert-menu {
+            position: fixed;
+            z-index: 1000;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            padding: 16px;
+            min-width: 200px;
+            animation: slideIn 0.2s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .insert-menu-content {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .insert-menu-content h4 {
+            color: #1e2b3f;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+
+        .insert-menu-content button {
+            background: #f8fafd;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s;
+            color: #1e2b3f;
+            font-weight: 500;
+        }
+
+        .insert-menu-content button:hover {
+            background: #3498db;
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .insert-menu-content button i {
+            width: 20px;
+        }
+
+        .insert-menu-content button:last-child {
+            background: #fee;
+            color: #e74c3c;
+        }
+
+        .insert-menu-content button:last-child:hover {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .merge-footer {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 1.8rem;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid rgba(255,255,255,0.5);
+        }
+
+        .merge-info {
+            font-size: 0.95rem;
+            background: rgba(255,255,255,0.5);
+            padding: 0.5rem 1.8rem;
+            border-radius: 40px;
+            color: #1f3e5a;
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255,255,255,0.6);
+        }
+
+        .merge-info i {
+            margin-right: 10px;
+            color: #2e6392;
+        }
+
+        .merge-btn {
+            background: #18344e;
+            border: none;
+            color: white;
+            padding: 1rem 3.5rem;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            box-shadow: 0 20px 30px -16px #0f2840;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: all 0.3s;
+            cursor: pointer;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .merge-btn i {
+            color: #b7d6ff;
+            font-size: 1.2rem;
+        }
+
+        .merge-btn:hover {
+            background: #1f4160;
+            transform: translateY(-3px);
+            box-shadow: 0 30px 40px -20px #0a1f30;
+        }
+
+        .merge-btn:active {
+            transform: translateY(1px);
+        }
+
+        .merge-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .keyboard-hint {
+            font-size: 0.7rem;
+            color: #7f8c8d;
+            margin-left: 4px;
+            padding: 2px 6px;
+            background: rgba(0,0,0,0.03);
+            border-radius: 4px;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .quick-insert-bar {
+            display: flex;
+            gap: 8px;
+            padding: 10px;
+            background: rgba(255,255,255,0.5);
+            border-radius: 30px;
+            margin-bottom: 10px;
+        }
+
+        .quick-insert-btn {
+            background: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .quick-insert-btn:hover {
+            background: #3498db;
+            color: white;
+        }
+
+        .merge-preview {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            border-radius: 20px;
+            padding: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            max-width: 300px;
+            z-index: 1000;
+        }
+
+        .merge-preview h4 {
+            color: #1e2b3f;
+            margin-bottom: 10px;
+        }
+
+        .merge-preview-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px;
+            border-bottom: 1px solid #eee;
+            font-size: 0.85rem;
+        }
+
+        .merge-preview-item i {
+            color: #3498db;
+        }
+
+        .merge-preview-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .merge-preview-btn {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .merge-preview-btn.confirm {
+            background: #2ecc71;
+            color: white;
+        }
+
+        .merge-preview-btn.cancel {
+            background: #e74c3c;
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .premium-card {
+                padding: 1.5rem;
+            }
+            
+            .action-bar {
+                justify-content: center;
+            }
+            
+            .action-btn span {
+                display: none;
+            }
+            
+            .action-btn {
+                padding: 8px 12px;
+            }
+            
+            .action-btn i {
+                margin: 0;
+            }
+            
+            .item-actions {
+                opacity: 1;
+            }
+            
+            .merge-footer {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .merge-btn {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .file-hint {
+                font-size: 0.8rem;
+                gap: 1rem;
+            }
+        }
+
+        /* Loading animation */
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .fa-spinner {
+            animation: spin 1s linear infinite;
+        }
+
+        /* Success animation */
+        .merge-btn.success {
+            background: #2ecc71;
+        }
+
+        /* Tooltip */
+        [data-tooltip] {
+            position: relative;
+            cursor: help;
+        }
+
+        [data-tooltip]:before {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 4px 8px;
+            background: #1e2b3f;
+            color: white;
+            font-size: 0.7rem;
+            border-radius: 4px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+            z-index: 1000;
+        }
+
+        [data-tooltip]:hover:before {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="premium-card">
+        <div class="top-bar">
+            <div class="logo-area">
+                <div class="brand-icon">
+                    <i class="fas fa-layer-group"></i>
+                </div>
+                <div class="logo-text">
+                    <h1>VaultMerge</h1>
+                    <span>
+                        <i class="far fa-star"></i> 
+                        premium file arranger & merger
+                    </span>
+                </div>
+            </div>
+            <div class="merge-actions">
+                <button class="premium-btn" id="clearAllBtn" data-tooltip="Remove all files">
+                    <i class="fas fa-trash-alt"></i>
+                    <span>Clear all</span>
+                </button>
+                <button class="premium-btn" id="sortNameBtn" data-tooltip="Sort alphabetically">
+                    <i class="fas fa-arrow-down-a-z"></i>
+                    <span>Sort by name</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="workspace">
+            <!-- Left Panel: Upload Area -->
+            <div class="upload-panel">
+                <div class="drop-zone" id="dropZone">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <h3>Drag & drop files here</h3>
+                    <p>PDF or DOCX (max 50MB each)</p>
+                    <label for="fileInput" class="file-input-label">
+                        <i class="fas fa-plus-circle"></i> Browse files
+                    </label>
+                    <input type="file" id="fileInput" multiple accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+                </div>
+                <div class="file-hint">
+                    <span>
+                        <i class="fas fa-file-pdf" style="color:#c74242;"></i> 
+                        PDF
+                    </span>
+                    <span>
+                        <i class="fas fa-file-word" style="color:#2b5797;"></i> 
+                        DOCX
+                    </span>
+                    <span>
+                        <i class="fas fa-arrows-alt-v"></i> 
+                        drag to reorder
+                    </span>
+                    <span>
+                        <i class="fas fa-mouse-pointer"></i>
+                        <span class="keyboard-hint">Click # to insert</span>
+                    </span>
+                </div>
+            </div>
+
+            <!-- Right Panel: File List with Rearrange Features -->
+            <div class="list-panel">
+                <div class="panel-header">
+                    <h2>
+                        <i class="fas fa-list-ul" style="margin-right: 10px;"></i>
+                        Your Files
+                    </h2>
+                    <div class="badge" id="fileCounter">0 files</div>
+                </div>
+
+                <!-- Action Bar - All Rearrange Controls -->
+                <div class="action-bar">
+                    <button class="action-btn" id="moveTopBtn" data-tooltip="Move to top (Ctrl+Shift+↑)">
+                        <i class="fas fa-arrow-up"></i>
+                        <span>Top</span>
+                    </button>
+                    <button class="action-btn" id="moveUpBtn" data-tooltip="Move up (Ctrl+↑)">
+                        <i class="fas fa-chevron-up"></i>
+                        <span>Up</span>
+                    </button>
+                    <button class="action-btn" id="moveDownBtn" data-tooltip="Move down (Ctrl+↓)">
+                        <i class="fas fa-chevron-down"></i>
+                        <span>Down</span>
+                    </button>
+                    <button class="action-btn" id="moveBottomBtn" data-tooltip="Move to bottom (Ctrl+Shift+↓)">
+                        <i class="fas fa-arrow-down"></i>
+                        <span>Bottom</span>
+                    </button>
+                    <button class="action-btn" id="removeSelectedBtn" data-tooltip="Remove selected (Delete)">
+                        <i class="fas fa-trash"></i>
+                        <span>Remove</span>
+                    </button>
+                    <button class="action-btn" id="selectAllBtn" data-tooltip="Select all (Ctrl+A)">
+                        <i class="fas fa-check-square"></i>
+                        <span>Select all</span>
+                    </button>
+                    <button class="action-btn" id="deselectAllBtn" data-tooltip="Deselect all (Ctrl+Shift+A)">
+                        <i class="fas fa-square"></i>
+                        <span>Deselect</span>
+                    </button>
+                    <button class="action-btn" id="reverseOrderBtn" data-tooltip="Reverse order">
+                        <i class="fas fa-exchange-alt"></i>
+                        <span>Reverse</span>
+                    </button>
+                    <button class="action-btn" id="shuffleBtn" data-tooltip="Shuffle order">
+                        <i class="fas fa-random"></i>
+                        <span>Shuffle</span>
+                    </button>
+                </div>
+
+                <!-- Quick Insert Bar -->
+                <div class="quick-insert-bar">
+                    <button class="quick-insert-btn" id="insertAtTopBtn" data-tooltip="Insert at beginning">
+                        <i class="fas fa-arrow-up"></i> Insert at top
+                    </button>
+                    <button class="quick-insert-btn" id="insertAtBottomBtn" data-tooltip="Insert at end">
+                        <i class="fas fa-arrow-down"></i> Insert at bottom
+                    </button>
+                </div>
+
+                <!-- File List Container -->
+                <div class="file-list-container" id="fileListContainer">
+                    <div class="empty-message">
+                        <i class="far fa-folder-open"></i>
+                        <p>No files added yet</p>
+                        <span style="font-size:0.85rem; opacity:0.7;">drop PDF or DOCX files to begin</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer with Merge Button -->
+        <div class="merge-footer">
+            <div class="merge-info">
+                <i class="fas fa-info-circle"></i> 
+                <span id="totalFilesSpan">0</span> file(s) · 
+                <span id="totalSizeSpan">0 B</span>
+            </div>
+            <button class="merge-btn" id="mergeBtn">
+                <i class="fas fa-compress-alt"></i>
+                <span>Merge all files</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Include the JavaScript file -->
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
