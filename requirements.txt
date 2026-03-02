@@ -1,7 +1,8 @@
 Flask==2.3.3
 Werkzeug==2.3.7
 PyPDF2==3.0.1
-docx2pdf
+docx2pdf==0.1.8
 python-docx==0.8.11
-pdf2image
-Pillow
+pdf2image==1.17.0
+Pillow==10.2.0
+gunicorn

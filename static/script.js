@@ -4,15 +4,15 @@ let draggedIndex = null;
 let selectedIndices = new Set();
 let lastClickedIndex = -1;
 let isMultiSelectMode = false;
-let insertPosition = null; // For showing insert indicator
+//let insertPosition = null; // For showing insert indicator
 
-// Close insert menu when clicking outside
+/*// Close insert menu when clicking outside
 document.addEventListener('click', (e) => {
     const menu = document.querySelector('.insert-menu');
     if (menu && !menu.contains(e.target)) {
         menu.remove();
     }
-});
+});*/
 
 // DOM Elements
 const dropZone = document.getElementById('dropZone');
@@ -27,27 +27,28 @@ const mergeBtn = document.getElementById('mergeBtn');
 
 // Calculate total size
 function updateTotalSize() {
-    const totalBytes = filesArray.reduce((sum, item) => sum + item.size, 0);
-    totalSizeSpan.textContent = formatFileSize(totalBytes);
+    //const totalBytes = filesArray.reduce((sum, item) => sum + item.size, 0);
+    //totalSizeSpan.textContent = formatFileSize(totalBytes);
+    totalSizeSpan.textContent = `${filesArray.length} pages`;
 }
 
-// Helper Functions
+/*// Helper Functions
 function formatFileSize(bytes) {
     if (bytes === 0) return '0 B';
     const k = 1024;
     const sizes = ['B', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
-}
+}*/
 
-function getFileIcon(type, name) {
+/*function getFileIcon(type, name) {
     if (type.includes('pdf') || name.toLowerCase().endsWith('.pdf')) {
         return 'fa-file-pdf pdf-icon';
     } else if (type.includes('word') || type.includes('docx') || name.toLowerCase().endsWith('.docx')) {
         return 'fa-file-word docx-icon';
     }
     return 'fa-file';
-}
+}*/
 
 // Render file list with insert indicators
 function renderFileList() {
@@ -69,22 +70,22 @@ function renderFileList() {
 
     let html = '';
 
-    // Add insert indicator at the beginning if needed
+    /*// Add insert indicator at the beginning if needed
     if (insertPosition === 0) {
         html += `<div class="insert-indicator" data-position="0">
             <i class="fas fa-arrow-down"></i> Insert here
         </div>`;
-    }
+    }*/
 
     filesArray.forEach((item, index) => {
-        const isPdf = item.type.includes('pdf') || item.name.toLowerCase().endsWith('.pdf');
-        const isDocx = item.type.includes('word') || item.name.toLowerCase().endsWith('.docx');
-        const iconClass = getFileIcon(item.type, item.name);
-        const fileSize = formatFileSize(item.size);
-        const fileType = isPdf ? 'PDF' : 'DOCX';
+        //const isPdf = item.type.includes('pdf') || item.name.toLowerCase().endsWith('.pdf');
+        //const isDocx = item.type.includes('word') || item.name.toLowerCase().endsWith('.docx');
+        //const iconClass = getFileIcon(item.type, item.name);
+        //const fileSize = formatFileSize(item.size);
+        //const fileType = isPdf ? 'PDF' : 'DOCX';
         const isSelected = selectedIndices.has(index);
 
-        html += `
+        /*html += `
             <div class="file-item ${isSelected ? 'selected' : ''}" 
                  draggable="true" 
                  data-index="${index}" 
@@ -114,14 +115,43 @@ function renderFileList() {
                     </button>
                 </div>
             </div>
-        `;
+        `;*/
+        html += `
+<div class="file-item ${isSelected ? 'selected' : ''}" 
+     draggable="true" 
+     data-index="${index}"
+     onclick="handleFileClick(event, ${index})">
 
-        // Add insert indicator after each file except the last one
+    <img src="${item.preview}"
+         style="width:70px; border-radius:10px; margin-right:12px;" />
+
+    <div class="file-info">
+        <div class="file-name" title="${item.fileName}">
+            ${item.fileName}
+        </div>
+        <div class="file-meta">
+            Page ${item.pageIndex + 1}
+        </div>
+    </div>
+
+    <div class="drag-handle" onclick="event.stopPropagation()">
+        <i class="fas fa-grip-vertical"></i>
+    </div>
+
+    <div class="item-actions" onclick="event.stopPropagation()">
+        <button class="item-action-btn" onclick="removeFile(${index})" title="Remove page">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+</div>
+`;
+
+        /*// Add insert indicator after each file except the last one
         if (insertPosition === index + 1) {
             html += `<div class="insert-indicator" data-position="${index + 1}">
                 <i class="fas fa-arrow-down"></i> Insert here
             </div>`;
-        }
+        }*/
     });
 
     fileListContainer.innerHTML = html;
@@ -129,7 +159,7 @@ function renderFileList() {
     totalFilesSpan.innerText = filesArray.length;
     updateTotalSize();
 
-    // Attach click handlers to position badges
+    /*// Attach click handlers to position badges
     document.querySelectorAll('.position-badge').forEach(badge => {
         badge.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -144,13 +174,13 @@ function renderFileList() {
             insertPosition = null;
             renderFileList();
         });
-    });
+    });*/
 
     updateActionButtons();
     attachDragListeners();
 }
 
-// Show insert menu at specific position
+/*// Show insert menu at specific position
 function showInsertMenu(position) {
     const menu = document.createElement('div');
     menu.className = 'insert-menu';
@@ -180,9 +210,9 @@ function showInsertMenu(position) {
         menu.style.top = rect.top + window.scrollY + 'px';
         menu.style.left = rect.left + window.scrollX + 'px';
     }
-}
+}*/
 
-// Insert files before a specific position
+/*// Insert files before a specific position
 window.insertFilesBefore = async function (position) {
     const files = await selectFiles();
     if (files.length > 0) {
@@ -192,9 +222,9 @@ window.insertFilesBefore = async function (position) {
         closeInsertMenu();
         renderFileList();
     }
-};
+};*/
 
-// Insert files after a specific position
+/*// Insert files after a specific position
 window.insertFilesAfter = async function (position) {
     const files = await selectFiles();
     if (files.length > 0) {
@@ -204,9 +234,9 @@ window.insertFilesAfter = async function (position) {
         closeInsertMenu();
         renderFileList();
     }
-};
+};*/
 
-// Replace file at position
+/*// Replace file at position
 window.replaceAtPosition = async function (position) {
     const files = await selectFiles();
     if (files.length > 0) {
@@ -216,13 +246,13 @@ window.replaceAtPosition = async function (position) {
         closeInsertMenu();
         renderFileList();
     }
-};
+};*/
 
-// Close insert menu
+/*// Close insert menu
 window.closeInsertMenu = function () {
     const menu = document.querySelector('.insert-menu');
     if (menu) menu.remove();
-};
+};*/
 
 // Select files via dialog
 async function selectFiles() {
@@ -246,7 +276,7 @@ async function selectFiles() {
     });
 }
 
-// Create file items from File objects
+/*// Create file items from File objects
 function createFileItems(files) {
     return files.map((file, i) => ({
         file: file,
@@ -256,7 +286,7 @@ function createFileItems(files) {
         type: file.type,
         pages: []   // 🔥 NEW: page order (filled later)
     }));
-}
+}*/
 
 // File click handler with multi-select
 window.handleFileClick = function (event, index) {
@@ -332,7 +362,7 @@ function handleDragOver(e) {
     e.dataTransfer.dropEffect = 'move';
 
     // Find the closest file item or insert indicator
-    const target = e.target.closest('.file-item') || e.target.closest('.insert-indicator');
+    const target = e.target.closest('.file-item');
     if (target) {
         const rect = target.getBoundingClientRect();
         const mouseY = e.clientY;
@@ -342,10 +372,8 @@ function handleDragOver(e) {
             const index = parseInt(target.dataset.index);
             if (mouseY < threshold) {
                 dragOverIndex = index;
-                showInsertIndicator(index, 'before');
             } else {
                 dragOverIndex = index + 1;
-                showInsertIndicator(index, 'after');
             }
         } else if (target.classList.contains('insert-indicator')) {
             dragOverIndex = parseInt(target.dataset.position);
@@ -353,7 +381,7 @@ function handleDragOver(e) {
     }
 }
 
-function showInsertIndicator(index, position) {
+/*function showInsertIndicator(index, position) {
     // Remove existing indicators
     document.querySelectorAll('.drag-insert-indicator').forEach(el => el.remove());
 
@@ -377,7 +405,7 @@ function showInsertIndicator(index, position) {
 function handleDragLeave(e) {
     document.querySelectorAll('.drag-insert-indicator').forEach(el => el.remove());
     dragOverIndex = null;
-}
+}*/
 
 function handleDrop(e) {
     e.preventDefault();
@@ -452,22 +480,35 @@ function handleDragEnd(e) {
 }
 
 // File Addition
-function addFilesFromList(fileList) {
+// 🔥 PAGE-BASED FILE ADDITION (REPLACES OLD addFilesFromList)
+async function addFilesFromList(fileList) {
     if (!fileList) return;
 
-    const newFiles = createFileItems(Array.from(fileList).filter(file => {
-        const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
-        const isDocx = file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
-            file.name.toLowerCase().endsWith('.docx');
-        return isPdf || isDocx;
-    }));
+    for (let file of Array.from(fileList)) {
+        const formData = new FormData();
+        formData.append('file', file);
 
-    if (newFiles.length > 0) {
-        filesArray = [...filesArray, ...newFiles];
-        renderFileList();
-    } else {
-        alert('Only PDF or DOCX files are accepted.');
+        const response = await fetch('/preview', {
+            method: 'POST',
+            body: formData
+        });
+
+        const data = await response.json();
+
+        if (data.pages) {
+            data.pages.forEach(page => {
+                filesArray.push({
+                    id: Date.now() + Math.random(),
+                    sessionId: data.sessionId,
+                    fileName: file.name,
+                    pageIndex: page.pageIndex,
+                    preview: page.imageUrl
+                });
+            });
+        }
     }
+
+    renderFileList();
 }
 
 // Event Listeners for upload
@@ -500,7 +541,7 @@ clearAllBtn.addEventListener('click', () => {
 
 // Sort by name
 sortNameBtn.addEventListener('click', () => {
-    filesArray.sort((a, b) => a.name.localeCompare(b.name));
+    filesArray.sort((a, b) => a.fileName.localeCompare(b.fileName));
     selectedIndices.clear();
     renderFileList();
 });
@@ -646,7 +687,7 @@ function updateActionButtons() {
 }
 
 // Merge Functionality
-mergeBtn.addEventListener('click', async () => {
+/*mergeBtn.addEventListener('click', async () => {
     if (filesArray.length === 0) {
         alert('Please add some PDF or DOCX files first.');
         return;
@@ -655,9 +696,9 @@ mergeBtn.addEventListener('click', async () => {
     const formData = new FormData();
 
     // Append files in the exact order shown in UI
-    /*filesArray.forEach(item => {
+    filesArray.forEach(item => {
         formData.append('files', item.file);
-    });*/
+    });
     // Append files + metadata in exact UI order
     const metadata = [];
 
@@ -715,7 +756,58 @@ mergeBtn.addEventListener('click', async () => {
         mergeBtn.innerHTML = '<i class="fas fa-compress-alt"></i> Merge all files';
         mergeBtn.disabled = false;
     }
+});*/
+// Merge Functionality (PAGE-BASED — CORRECT)
+mergeBtn.addEventListener('click', async () => {
+    if (filesArray.length === 0) {
+        alert('Please add pages first.');
+        return;
+    }
+
+    const formData = new FormData();
+
+    // ✅ Build EXACT metadata backend expects
+    const metadata = filesArray.map(item => ({
+        sessionId: item.sessionId,
+        pageIndex: item.pageIndex
+    }));
+
+    formData.append('metadata', JSON.stringify(metadata));
+
+    mergeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+    mergeBtn.disabled = true;
+
+    try {
+        const response = await fetch('/merge', {
+            method: 'POST',
+            body: formData
+        });
+
+        if (!response.ok) {
+            const err = await response.json();
+            throw new Error(err.error || 'Merge failed');
+        }
+
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'VaultMerge_Result.pdf';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+
+        URL.revokeObjectURL(url);
+
+    } catch (err) {
+        alert('Error merging pages: ' + err.message);
+    } finally {
+        mergeBtn.innerHTML = '<i class="fas fa-compress-alt"></i> Merge all pages';
+        mergeBtn.disabled = false;
+    }
 });
+
 
 // Keyboard shortcuts
 document.addEventListener('keydown', (e) => {
