@@ -98,30 +98,32 @@ def preview_file():
                 return jsonify({'error': 'DOCX conversion failed'}), 500
             os.remove(saved_path)  # ✅ ADD THIS
         else:
-            pdf_path = saved_path
+            pdf_path = os.path.join(temp_dir, 'converted.pdf')
+            shutil.move(saved_path, pdf_path)
+
 
         # Convert PDF → images
         #images = convert_from_path(pdf_path, dpi=120)
         # Convert PDF → images
-    try:
-        poppler_path = None
+        try:
+            poppler_path = None
 
-        # Windows needs explicit Poppler path
-        if sys.platform.startswith("win"):
-            poppler_path = r"C:\poppler\Library\bin"
+            # Windows needs explicit Poppler path
+            if sys.platform.startswith("win"):
+                poppler_path = r"C:\poppler\Library\bin"
 
-        images = convert_from_path(
-            pdf_path,
-            dpi=100,
-            poppler_path=poppler_path
-    )
+            images = convert_from_path(
+                pdf_path,
+                dpi=100,
+                poppler_path=poppler_path
+            )
 
-    except Exception as e:
-        print("PDF PREVIEW ERROR:", e)
-        return jsonify({
-            "error": "PDF preview failed",
-            "details": str(e)
-        }), 500
+        except Exception as e:
+            print("PDF PREVIEW ERROR:", e)
+            return jsonify({
+                "error": "PDF preview failed",
+                "details": str(e)
+            }), 500
 
         pages = []
         for i, img in enumerate(images):
@@ -141,6 +143,7 @@ def preview_file():
         })
 
     except Exception as e:
+        print("PREVIEW ROUTE ERROR:", e)
         return jsonify({'error': str(e)}), 500
 
 
