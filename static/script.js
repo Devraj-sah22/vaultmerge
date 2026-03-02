@@ -6,6 +6,14 @@ let lastClickedIndex = -1;
 let isMultiSelectMode = false;
 let insertPosition = null; // For showing insert indicator
 
+// Close insert menu when clicking outside
+document.addEventListener('click', (e) => {
+    const menu = document.querySelector('.insert-menu');
+    if (menu && !menu.contains(e.target)) {
+        menu.remove();
+    }
+});
+
 // DOM Elements
 const dropZone = document.getElementById('dropZone');
 const fileInput = document.getElementById('fileInput');
@@ -60,14 +68,14 @@ function renderFileList() {
     }
 
     let html = '';
-    
+
     // Add insert indicator at the beginning if needed
     if (insertPosition === 0) {
         html += `<div class="insert-indicator" data-position="0">
             <i class="fas fa-arrow-down"></i> Insert here
         </div>`;
     }
-    
+
     filesArray.forEach((item, index) => {
         const isPdf = item.type.includes('pdf') || item.name.toLowerCase().endsWith('.pdf');
         const isDocx = item.type.includes('word') || item.name.toLowerCase().endsWith('.docx');
@@ -107,7 +115,7 @@ function renderFileList() {
                 </div>
             </div>
         `;
-        
+
         // Add insert indicator after each file except the last one
         if (insertPosition === index + 1) {
             html += `<div class="insert-indicator" data-position="${index + 1}">
@@ -115,12 +123,12 @@ function renderFileList() {
             </div>`;
         }
     });
-    
+
     fileListContainer.innerHTML = html;
     fileCounter.innerText = `${filesArray.length} file${filesArray.length > 1 ? 's' : ''}`;
     totalFilesSpan.innerText = filesArray.length;
     updateTotalSize();
-    
+
     // Attach click handlers to position badges
     document.querySelectorAll('.position-badge').forEach(badge => {
         badge.addEventListener('click', (e) => {
@@ -129,7 +137,7 @@ function renderFileList() {
             showInsertMenu(index);
         });
     });
-    
+
     // Attach click handlers to insert indicators
     document.querySelectorAll('.insert-indicator').forEach(indicator => {
         indicator.addEventListener('click', () => {
@@ -137,7 +145,7 @@ function renderFileList() {
             renderFileList();
         });
     });
-    
+
     updateActionButtons();
     attachDragListeners();
 }
@@ -164,7 +172,7 @@ function showInsertMenu(position) {
         </div>
     `;
     document.body.appendChild(menu);
-    
+
     // Position the menu near the clicked item
     const item = document.querySelector(`[data-index="${position}"]`);
     if (item) {
@@ -175,40 +183,43 @@ function showInsertMenu(position) {
 }
 
 // Insert files before a specific position
-window.insertFilesBefore = async function(position) {
+window.insertFilesBefore = async function (position) {
     const files = await selectFiles();
     if (files.length > 0) {
         const newItems = createFileItems(files);
         filesArray.splice(position, 0, ...newItems);
+        insertPosition = null;   // ✅ ADD THIS LINE
         closeInsertMenu();
         renderFileList();
     }
 };
 
 // Insert files after a specific position
-window.insertFilesAfter = async function(position) {
+window.insertFilesAfter = async function (position) {
     const files = await selectFiles();
     if (files.length > 0) {
         const newItems = createFileItems(files);
         filesArray.splice(position + 1, 0, ...newItems);
+        insertPosition = null;   // ✅ ADD THIS LINE
         closeInsertMenu();
         renderFileList();
     }
 };
 
 // Replace file at position
-window.replaceAtPosition = async function(position) {
+window.replaceAtPosition = async function (position) {
     const files = await selectFiles();
     if (files.length > 0) {
         const newItems = createFileItems(files);
         filesArray.splice(position, 1, ...newItems);
+        insertPosition = null;   // ✅ ADD THIS LINE
         closeInsertMenu();
         renderFileList();
     }
 };
 
 // Close insert menu
-window.closeInsertMenu = function() {
+window.closeInsertMenu = function () {
     const menu = document.querySelector('.insert-menu');
     if (menu) menu.remove();
 };
@@ -220,17 +231,17 @@ async function selectFiles() {
         input.type = 'file';
         input.multiple = true;
         input.accept = '.pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document';
-        
+
         input.onchange = () => {
             const files = Array.from(input.files).filter(file => {
                 const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
-                const isDocx = file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || 
-                              file.name.toLowerCase().endsWith('.docx');
+                const isDocx = file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+                    file.name.toLowerCase().endsWith('.docx');
                 return isPdf || isDocx;
             });
             resolve(files);
         };
-        
+
         input.click();
     });
 }
@@ -242,14 +253,15 @@ function createFileItems(files) {
         id: Date.now() + '-' + i + '-' + Math.random().toString(36).substr(2, 8),
         name: file.name,
         size: file.size,
-        type: file.type
+        type: file.type,
+        pages: []   // 🔥 NEW: page order (filled later)
     }));
 }
 
 // File click handler with multi-select
-window.handleFileClick = function(event, index) {
+window.handleFileClick = function (event, index) {
     event.stopPropagation();
-    
+
     if (event.ctrlKey || event.metaKey) {
         if (selectedIndices.has(index)) {
             selectedIndices.delete(index);
@@ -272,12 +284,12 @@ window.handleFileClick = function(event, index) {
         lastClickedIndex = index;
         isMultiSelectMode = false;
     }
-    
+
     renderFileList();
 };
 
 // Remove individual file
-window.removeFile = function(index) {
+window.removeFile = function (index) {
     filesArray.splice(index, 1);
     const newSelected = new Set();
     selectedIndices.forEach(i => {
@@ -292,15 +304,15 @@ window.removeFile = function(index) {
 function attachDragListeners() {
     const items = document.querySelectorAll('.file-item');
     const container = fileListContainer;
-    
+
     items.forEach(item => {
         item.addEventListener('dragstart', handleDragStart);
         item.addEventListener('dragend', handleDragEnd);
     });
-    
-    container.addEventListener('dragover', handleDragOver);
-    container.addEventListener('dragleave', handleDragLeave);
-    container.addEventListener('drop', handleDrop);
+
+    container.ondragover = handleDragOver;
+    container.ondragleave = handleDragLeave;
+    container.ondrop = handleDrop;
 }
 
 let dragOverIndex = null;
@@ -318,14 +330,14 @@ function handleDragStart(e) {
 function handleDragOver(e) {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
-    
+
     // Find the closest file item or insert indicator
     const target = e.target.closest('.file-item') || e.target.closest('.insert-indicator');
     if (target) {
         const rect = target.getBoundingClientRect();
         const mouseY = e.clientY;
         const threshold = rect.top + rect.height / 2;
-        
+
         if (target.classList.contains('file-item')) {
             const index = parseInt(target.dataset.index);
             if (mouseY < threshold) {
@@ -344,13 +356,13 @@ function handleDragOver(e) {
 function showInsertIndicator(index, position) {
     // Remove existing indicators
     document.querySelectorAll('.drag-insert-indicator').forEach(el => el.remove());
-    
+
     // Create new indicator
     const indicator = document.createElement('div');
     indicator.className = 'drag-insert-indicator';
     indicator.innerHTML = '<i class="fas fa-arrow-down"></i> Drop here';
     indicator.dataset.insertIndex = index;
-    
+
     // Position the indicator
     if (index === 0) {
         fileListContainer.insertBefore(indicator, fileListContainer.firstChild);
@@ -370,20 +382,20 @@ function handleDragLeave(e) {
 function handleDrop(e) {
     e.preventDefault();
     e.stopPropagation();
-    
+
     // Remove indicators
     document.querySelectorAll('.drag-insert-indicator').forEach(el => el.remove());
-    
+
     if (draggedIndex === null) return;
-    
+
     let targetIndex = dragOverIndex;
-    
+
     if (targetIndex === null || targetIndex === undefined) {
         // Find drop position based on mouse
         const rect = fileListContainer.getBoundingClientRect();
         const mouseY = e.clientY;
         const items = document.querySelectorAll('.file-item');
-        
+
         if (items.length === 0) {
             targetIndex = 0;
         } else {
@@ -397,17 +409,17 @@ function handleDrop(e) {
             }
         }
     }
-    
+
     // Reorder array
     const [movedItem] = filesArray.splice(draggedIndex, 1);
-    
+
     // Adjust target index if moving from before to after
     if (draggedIndex < targetIndex) {
         targetIndex--;
     }
-    
+
     filesArray.splice(targetIndex, 0, movedItem);
-    
+
     // Adjust selected indices
     const newSelected = new Set();
     selectedIndices.forEach(i => {
@@ -426,7 +438,7 @@ function handleDrop(e) {
         }
     });
     selectedIndices = newSelected;
-    
+
     renderFileList();
     draggedIndex = null;
     dragOverIndex = null;
@@ -442,14 +454,14 @@ function handleDragEnd(e) {
 // File Addition
 function addFilesFromList(fileList) {
     if (!fileList) return;
-    
+
     const newFiles = createFileItems(Array.from(fileList).filter(file => {
         const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
-        const isDocx = file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || 
-                      file.name.toLowerCase().endsWith('.docx');
+        const isDocx = file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+            file.name.toLowerCase().endsWith('.docx');
         return isPdf || isDocx;
     }));
-    
+
     if (newFiles.length > 0) {
         filesArray = [...filesArray, ...newFiles];
         renderFileList();
@@ -501,13 +513,13 @@ document.getElementById('moveTopBtn').addEventListener('click', () => {
         alert('Please select files to move');
         return;
     }
-    
+
     const selected = Array.from(selectedIndices).sort((a, b) => a - b);
     const selectedItems = selected.map(i => filesArray[i]);
-    
+
     filesArray = filesArray.filter((_, i) => !selectedIndices.has(i));
     filesArray = [...selectedItems, ...filesArray];
-    
+
     selectedIndices.clear();
     renderFileList();
 });
@@ -515,46 +527,46 @@ document.getElementById('moveTopBtn').addEventListener('click', () => {
 // Move selected up
 document.getElementById('moveUpBtn').addEventListener('click', () => {
     if (selectedIndices.size === 0) return;
-    
+
     const indices = Array.from(selectedIndices).sort((a, b) => a - b);
-    
+
     if (indices[0] === 0) {
         alert('Cannot move up: already at the top');
         return;
     }
-    
-    for (let i = 0; i < indices.length; i++) {
-        const currentIdx = indices[i];
-        const newIdx = currentIdx - 1;
-        [filesArray[currentIdx], filesArray[newIdx]] = [filesArray[newIdx], filesArray[currentIdx]];
-        indices[i] = newIdx;
+
+    for (let idx of indices) {
+        [filesArray[idx - 1], filesArray[idx]] =
+            [filesArray[idx], filesArray[idx - 1]];
     }
-    
-    const newSelected = new Set(indices);
-    selectedIndices = newSelected;
+
+    selectedIndices = new Set(indices.map(i => i - 1));
+
+    //const newSelected = new Set(indices);
+    //selectedIndices = newSelected;
     renderFileList();
 });
 
 // Move selected down
 document.getElementById('moveDownBtn').addEventListener('click', () => {
     if (selectedIndices.size === 0) return;
-    
+
     const indices = Array.from(selectedIndices).sort((a, b) => b - a);
-    
+
     if (indices[0] === filesArray.length - 1) {
         alert('Cannot move down: already at the bottom');
         return;
     }
-    
-    for (let i = 0; i < indices.length; i++) {
-        const currentIdx = indices[i];
-        const newIdx = currentIdx + 1;
-        [filesArray[currentIdx], filesArray[newIdx]] = [filesArray[newIdx], filesArray[currentIdx]];
-        indices[i] = newIdx;
+
+    for (let idx of indices) {
+        [filesArray[idx + 1], filesArray[idx]] =
+            [filesArray[idx], filesArray[idx + 1]];
     }
-    
-    const newSelected = new Set(indices);
-    selectedIndices = newSelected;
+
+    selectedIndices = new Set(indices.map(i => i + 1));
+
+    //const newSelected = new Set(indices);
+    //selectedIndices = newSelected;
     renderFileList();
 });
 
@@ -564,13 +576,13 @@ document.getElementById('moveBottomBtn').addEventListener('click', () => {
         alert('Please select files to move');
         return;
     }
-    
+
     const selected = Array.from(selectedIndices).sort((a, b) => b - a);
     const selectedItems = selected.map(i => filesArray[i]);
-    
+
     filesArray = filesArray.filter((_, i) => !selectedIndices.has(i));
     filesArray = [...filesArray, ...selectedItems];
-    
+
     selectedIndices.clear();
     renderFileList();
 });
@@ -581,7 +593,7 @@ document.getElementById('removeSelectedBtn').addEventListener('click', () => {
         alert('Please select files to remove');
         return;
     }
-    
+
     filesArray = filesArray.filter((_, i) => !selectedIndices.has(i));
     selectedIndices.clear();
     renderFileList();
@@ -623,7 +635,7 @@ document.getElementById('shuffleBtn').addEventListener('click', () => {
 function updateActionButtons() {
     const hasSelection = selectedIndices.size > 0;
     const moveButtons = ['moveTopBtn', 'moveUpBtn', 'moveDownBtn', 'moveBottomBtn', 'removeSelectedBtn'];
-    
+
     moveButtons.forEach(id => {
         const btn = document.getElementById(id);
         if (btn) {
@@ -641,11 +653,25 @@ mergeBtn.addEventListener('click', async () => {
     }
 
     const formData = new FormData();
-    
+
     // Append files in the exact order shown in UI
-    filesArray.forEach(item => {
+    /*filesArray.forEach(item => {
         formData.append('files', item.file);
+    });*/
+    // Append files + metadata in exact UI order
+    const metadata = [];
+
+    filesArray.forEach((item, index) => {
+        formData.append('files', item.file);
+
+        metadata.push({
+            id: item.id,
+            order: index,
+            pages: item.pages && item.pages.length ? item.pages : "ALL"
+        });
     });
+
+    formData.append('metadata', JSON.stringify(metadata));
 
     // Show loading state
     mergeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
@@ -658,8 +684,12 @@ mergeBtn.addEventListener('click', async () => {
         });
 
         if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error || 'Merge failed');
+            let errorMsg = 'Merge failed';
+            try {
+                const err = await response.json();
+                errorMsg = err.error || errorMsg;
+            } catch { }
+            throw new Error(errorMsg);
         }
 
         // Get the blob and trigger download
@@ -690,7 +720,7 @@ mergeBtn.addEventListener('click', async () => {
 // Keyboard shortcuts
 document.addEventListener('keydown', (e) => {
     if (e.ctrlKey || e.metaKey) {
-        switch(e.key) {
+        switch (e.key) {
             case 'a':
                 e.preventDefault();
                 if (e.shiftKey) {

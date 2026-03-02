@@ -3,137 +3,144 @@ import uuid
 import tempfile
 import subprocess
 import sys
+import shutil
+import json
+
 from flask import Flask, render_template, request, send_file, jsonify
 from werkzeug.utils import secure_filename
-from PyPDF2 import PdfMerger
-import docx
+from PyPDF2 import PdfReader, PdfWriter
+from docx2pdf import convert as docx2pdf_convert
 
 app = Flask(__name__)
 
-# Configure upload settings
-app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50MB max file size
+# ================= CONFIG =================
+app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50MB
 app.config['UPLOAD_FOLDER'] = tempfile.gettempdir()
 
 ALLOWED_EXTENSIONS = {'pdf', 'docx'}
 
+# ================= HELPERS =================
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+
 def convert_docx_to_pdf(docx_path, pdf_path):
     """
-    Convert DOCX to PDF using multiple methods for cross-platform compatibility
+    Reliable DOCX → PDF conversion (cross-platform)
+    - Windows  : docx2pdf (MS Word)
+    - Linux/Mac: LibreOffice headless
     """
     try:
-        # Method 1: Try using unoconv (Linux/Mac)
-        if sys.platform != 'win32':
-            try:
-                subprocess.run(['unoconv', '-f', 'pdf', '-o', pdf_path, docx_path], 
-                             check=True, capture_output=True)
-                return True
-            except:
-                pass
-        
-        # Method 2: Fallback - create a simple PDF with metadata
-        # In production, you'd want a proper conversion service
-        # For now, we'll create a placeholder PDF
-        from PyPDF2 import PdfWriter
-        writer = PdfWriter()
-        writer.add_blank_page(width=612, height=792)  # Letter size
-        
-        # Add metadata about the original DOCX
-        doc = docx.Document(docx_path)
-        text_content = []
-        for para in doc.paragraphs[:5]:  # First 5 paragraphs
-            text_content.append(para.text)
-        
-        # Write the PDF
-        with open(pdf_path, 'wb') as f:
-            writer.write(f)
-        
-        return True
-        
+        if sys.platform == 'win32':
+            docx2pdf_convert(docx_path, pdf_path)
+        else:
+            # ✅ Check LibreOffice availability (prevents silent failure)
+            subprocess.run(["libreoffice", "--version"], check=True)
+
+            subprocess.run(
+                [
+                    "libreoffice",
+                    "--headless",
+                    "--convert-to", "pdf",
+                    docx_path,
+                    "--outdir", os.path.dirname(pdf_path)
+                ],
+                check=True,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL
+            )
+
+        return os.path.exists(pdf_path)
+
     except Exception as e:
-        print(f"Error converting DOCX to PDF: {e}")
+        print(f"[DOCX → PDF ERROR]: {e}")
         return False
 
+
+# ================= ROUTES =================
 @app.route('/')
 def index():
     return render_template('index.html')
 
+
 @app.route('/merge', methods=['POST'])
 def merge_files():
     """
-    Endpoint to merge PDF and DOCX files in the order they're sent
+    Merge PDF and DOCX files in the exact order received from UI
+    (metadata-ready for future page-level control)
     """
     try:
+        # ================= READ FILES =================
         files = request.files.getlist('files')
-        
+        metadata_raw = request.form.get('metadata')
+        metadata = json.loads(metadata_raw) if metadata_raw else []
+
         if not files:
             return jsonify({'error': 'No files uploaded'}), 400
-        
-        # Create a unique session ID for this merge operation
+
         session_id = str(uuid.uuid4())
         temp_dir = os.path.join(app.config['UPLOAD_FOLDER'], session_id)
         os.makedirs(temp_dir, exist_ok=True)
-        
-        merger = PdfMerger()
-        pdf_files = []
-        
-        # Process each file in the order received
+
+        writer = PdfWriter()
+        saved_pdfs = []
+
+        # ================= SAVE & CONVERT FILES =================
         for index, file in enumerate(files):
             if file and allowed_file(file.filename):
-                # Secure the filename and save
                 filename = secure_filename(file.filename)
-                file_ext = filename.rsplit('.', 1)[1].lower()
-                temp_path = os.path.join(temp_dir, f"{index}_{filename}")
-                file.save(temp_path)
-                
-                # Handle based on file type
-                if file_ext == 'pdf':
-                    pdf_files.append(temp_path)
-                    merger.append(temp_path)
-                    
-                elif file_ext == 'docx':
-                    # Convert DOCX to PDF
+                ext = filename.rsplit('.', 1)[1].lower()
+
+                saved_path = os.path.join(temp_dir, f"{index}_{filename}")
+                file.save(saved_path)
+
+                if ext == 'pdf':
+                    saved_pdfs.append(saved_path)
+
+                elif ext == 'docx':
                     pdf_path = os.path.join(temp_dir, f"{index}_converted.pdf")
-                    if convert_docx_to_pdf(temp_path, pdf_path):
-                        pdf_files.append(pdf_path)
-                        merger.append(pdf_path)
-        
-        if len(pdf_files) == 0:
+                    if not convert_docx_to_pdf(saved_path, pdf_path):
+                        shutil.rmtree(temp_dir, ignore_errors=True)
+                        return jsonify({'error': 'DOCX conversion failed'}), 500
+                    saved_pdfs.append(pdf_path)
+
+        if not saved_pdfs:
+            shutil.rmtree(temp_dir, ignore_errors=True)
             return jsonify({'error': 'No valid PDF or DOCX files found'}), 400
-        
-        # Generate merged PDF
-        output_filename = f"merged_{session_id}.pdf"
-        output_path = os.path.join(temp_dir, output_filename)
-        merger.write(output_path)
-        merger.close()
-        
-        # Send the file
+
+        # ================= MERGE (SAFE DEFAULT: ALL PAGES) =================
+        # Metadata is read but not enforced yet (no breaking change)
+        for pdf_path in saved_pdfs:
+            reader = PdfReader(pdf_path)
+            for page in reader.pages:
+                writer.add_page(page)
+
+        output_path = os.path.join(temp_dir, f"merged_{session_id}.pdf")
+        with open(output_path, "wb") as f:
+            writer.write(f)
+
         response = send_file(
             output_path,
             as_attachment=True,
             download_name='VaultMerge_Result.pdf',
             mimetype='application/pdf'
         )
-        
-        # Clean up temp files after sending
+
         @response.call_on_close
         def cleanup():
-            try:
-                import shutil
-                shutil.rmtree(temp_dir)
-            except:
-                pass
-        
+            shutil.rmtree(temp_dir, ignore_errors=True)
+
         return response
-        
+
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
 
 @app.route('/health', methods=['GET'])
 def health():
     return jsonify({'status': 'healthy'}), 200
 
+
+# ================= MAIN =================
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
